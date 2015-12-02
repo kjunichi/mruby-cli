@@ -19,6 +19,10 @@ Rake::Task[:mruby].invoke unless Dir.exist?(mruby_root)
 Dir.chdir(mruby_root)
 load "#{mruby_root}/Rakefile"
 
+load "#{mruby_root}/../mrbgem.rake"
+current_gem = MRuby::Gem.current
+APP_VERSION = MRuby::Gem.current.version
+
 desc "compile all the binaries"
 task :compile => [:all] do
   MRuby.each_target do |target|
@@ -77,12 +81,11 @@ end
 desc "generate a release tarball"
 task :release => :compile do
   require 'tmpdir'
-  require_relative 'mrblib/mruby-cli/version'
 
   # since we're in the mruby/
-  release_dir  = "releases/v#{MRubyCLI::Version::VERSION}"
+  release_dir  = "releases/v#{APP_VERSION}"
   release_path = Dir.pwd + "/../#{release_dir}"
-  app_name     = "mruby-cli-#{MRubyCLI::Version::VERSION}"
+  app_name     = "#{APP_NAME}-#{APP_VERSION}"
   FileUtils.mkdir_p(release_path)
 
   Dir.mktmpdir do |tmp_dir|
@@ -109,10 +112,9 @@ task :release => :compile do
 end
 
 namespace :local do
-  desc "show help"
+  desc "show version"
   task :version do
-    require_relative 'mrblib/mruby-cli/version'
-    puts "mruby-cli #{MRubyCLI::Version::VERSION}"
+    puts "#{APP_NAME} #{APP_VERSION}"
   end
 end
 
@@ -139,9 +141,8 @@ end
 namespace :package do
   require 'fileutils'
   require 'tmpdir'
-  require_relative "#{MRUBY_ROOT}/../mrblib/mruby-cli/version"
 
-  version = MRubyCLI::Version::VERSION
+  version = APP_VERSION
   release_dir = "releases/v#{version}"
   package_dir = "packages/v#{version}"
   release_path = Dir.pwd + "/../#{release_dir}"
